@@ -13,11 +13,13 @@ Tudo que você precisa é de um terminal (precferencialmente Bash-LINUX), um edi
 
 Para quem utiliza LINUX-Debian a instalação necessária pode ser feita assim:
 
+```shell
 sudo apt install gcc
 
 sudo apt install libncurses5 ncurses-bin ncurses-base ncurses-dev
 
 sudo apt install geany
+```
 
 Pronto, desta forma voce terá tudo que é necessário para acompanhar o nosso curso.
 
