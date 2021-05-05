@@ -16,6 +16,9 @@ typedef struct JOGADOR{
 	char apar[8];
 }Jogador;
 
+int vidas  = 30;
+int pontos = 0;
+
 int main(){
 	/*******************************
 	 * Configuração inicial do Jogo 
@@ -41,6 +44,28 @@ int main(){
 		/**********************************
 		 * Regras de Funcionamento do Jogo
 		 **********************************/
+
+		//Verificando o fim do jogo
+		if(vidas == 0){
+			endwin();
+			system("setterm -cursor on");
+			return 0;
+		}
+
+		//Verificando se o perdemos vidas
+		for(int b = 0; b < 5; b++)
+			if(bola[b].pos_lin >= LINES + 1)
+				vidas--;
+		
+		//Verificando a pontuação
+		for(int b = 0; b < 5; b++){
+			if(bola[b].pos_col >= jogador.pos_col && 
+			   bola[b].pos_col <= jogador.pos_col + strlen(jogador.apar) &&
+			   bola[b].pos_lin == LINES - 1){
+				bola[b].pos_lin = LINES + 1;
+				pontos +=5;
+			}
+		}
 		
 		//Regras e limites para a bola
 		for(int b = 0; b < 5; b++){
@@ -70,6 +95,9 @@ int main(){
 		for(int lin=0; lin<LINES; lin++)
 			for(int col=0; col<COLS; col++)
 				mvwprintw(stdscr, lin, col, " ");
+
+		//Plotando vidas e pontos
+		mvwprintw(stdscr, 0, 0, "Vidas: %d  |  Placar: %d", vidas, pontos);
 
 		//Plotando a bola na Tela
 		for(int b = 0; b < 5; b++)
