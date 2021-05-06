@@ -18,6 +18,8 @@ typedef struct JOGADOR{
 
 int vidas  = 30;
 int pontos = 0;
+int est_jg = 0; //Estados possíveis: 	0 - Rodando; 1 - Fim do Jogo; 2 - Reiniciando o jogo
+		//			3 - Pausa para reiniciar o jogo
 
 int main(){
 	/*******************************
@@ -45,40 +47,59 @@ int main(){
 		 * Regras de Funcionamento do Jogo
 		 **********************************/
 
-		//Verificando o fim do jogo
-		if(vidas == 0){
+		//Verificando os diversos estados do jogo
+		if(est_jg == 1){	//Finalizando o jogo
 			endwin();
 			system("setterm -cursor on");
 			return 0;
+		}else if(est_jg == 2){	//Reiniciando o jogo
+			for(int b = 0; b < 5; b++)
+				bola[b].pos_lin = LINES + 1;
+			vidas  = 30;
+			pontos = 0;
+			est_jg = 0;
+		}else if(est_jg == 3){	//Pausa para reiniciar o jogo
+			if(ev == 'q') est_jg = 1;
+			if(ev == 'r') est_jg = 2;
 		}
 
+		//Verificando o fim do jogo
+		if(est_jg == 0)
+			if(vidas <= 0){
+				est_jg = 3;
+			}
+
 		//Verificando se o perdemos vidas
-		for(int b = 0; b < 5; b++)
-			if(bola[b].pos_lin >= LINES + 1)
-				vidas--;
+		if(est_jg == 0)
+			for(int b = 0; b < 5; b++)
+				if(bola[b].pos_lin >= LINES + 1)
+					vidas--;
 		
 		//Verificando a pontuação
-		for(int b = 0; b < 5; b++){
-			if(bola[b].pos_col >= jogador.pos_col && 
-			   bola[b].pos_col <= jogador.pos_col + strlen(jogador.apar) &&
-			   bola[b].pos_lin == LINES - 1){
-				bola[b].pos_lin = LINES + 1;
-				pontos +=5;
+		if(est_jg == 0)
+			for(int b = 0; b < 5; b++){
+				if(bola[b].pos_col >= jogador.pos_col && 
+			   		bola[b].pos_col <= jogador.pos_col + strlen(jogador.apar) &&
+			   		bola[b].pos_lin == LINES - 1){
+					bola[b].pos_lin = LINES + 1;
+					pontos +=5;
+				}
 			}
-		}
 		
 		//Regras e limites para a bola
-		for(int b = 0; b < 5; b++){
-			//Bola passou da Tela
-			if(bola[b].pos_lin > LINES){
-				bola[b].pos_lin = 1;
-				bola[b].pos_col = (rand()%(COLS - 2)) + 1;
-				bola[b].vel = (rand()%300000) + 100000;
-			}
-			//Mover a bola
-			if(bola[b].vel + bola[b].tempo < clock()){
-				bola[b].tempo = clock();
-				bola[b].pos_lin++;
+		if(est_jg == 0){
+			for(int b = 0; b < 5; b++){
+				//Bola passou da Tela
+				if(bola[b].pos_lin > LINES){
+					bola[b].pos_lin = 1;
+					bola[b].pos_col = (rand()%(COLS - 2)) + 1;
+					bola[b].vel = (rand()%300000) + 100000;
+				}
+				//Mover a bola
+				if(bola[b].vel + bola[b].tempo < clock()){
+					bola[b].tempo = clock();
+					bola[b].pos_lin++;
+				}
 			}
 		}
 
@@ -95,6 +116,10 @@ int main(){
 		for(int lin=0; lin<LINES; lin++)
 			for(int col=0; col<COLS; col++)
 				mvwprintw(stdscr, lin, col, " ");
+
+		//Plotando a mensagem de fim de jogo
+		if(est_jg == 3)
+			mvwprintw(stdscr, LINES / 2, COLS / 2 - 15, "Fim de Jogo 'r' Reiniciar  ou 'q' Sair");
 
 		//Plotando vidas e pontos
 		mvwprintw(stdscr, 0, 0, "Vidas: %d  |  Placar: %d", vidas, pontos);
@@ -115,14 +140,17 @@ int main(){
 		if(tecla()){ 			//Jogador pressinou uma tecla?
 			ev=getchar();
 			if(ev == 'q'){		//Foi a tecla de sair?
-				endwin();
-				system("setterm -cursor on");
-				return 0;
+				est_jg = 1;
 			}
-			if(ev == 67){		//Foi a seta para a direita?
+
+			if(ev == 'r' && est_jg == 3)
+				est_jg = 2;
+
+			if(ev == 67  && est_jg == 0){		//Foi a seta para a direita?
 				jogador.pos_col+=6;
 			}
-			if(ev == 68){		//Foi a seta para a esquerda?
+
+			if(ev == 68  && est_jg == 0){		//Foi a seta para a esquerda?
 				jogador.pos_col-=6;
 			}
 		}
